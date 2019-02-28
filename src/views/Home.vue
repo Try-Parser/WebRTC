@@ -53,9 +53,9 @@ export default class Home extends Vue {
 		}
 	}
 
-	readAnswer(answer: any) { this.pc.setRemoteDescription(answer).catch((err: any) => console.log(err)) }
+	readAnswer(answer: any) { this.pc.setRemoteDescription(new RTCSessionDescription(answer)).catch((err: any) => console.log(err)) }
 
-	setCandidate(candidate: any) { this.pc.addIceCandidate(candidate).catch((err: any) => console.log(err)) }
+	setCandidate(candidate: any) { this.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: any) => console.log(err)) }
 
 	consumeOffer(offer: any) { 
 		this.pc
@@ -83,7 +83,6 @@ export default class Home extends Vue {
 
 			this.pc.ontrack = (e: any) => this.remoteVideo.srcObject = e.streams[0]
 			this.pc.onicecandidate = (ice: any) => {
-				console.log(ice)
 				if(ice.candidate)
 					this.socket.send(this.stringify({ type: "candidate", candidate: ice.candidate}))
 			}
