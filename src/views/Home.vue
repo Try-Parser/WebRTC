@@ -38,6 +38,8 @@ export default class Home extends Vue {
 	onmessage(message: any) {
 		var msg = JSON.parse(message.data);
 
+		console.log(msg)
+
 		switch(msg.type) {
 			case 'offer':
 				this.consumeOffer(msg.offer)
@@ -46,14 +48,14 @@ export default class Home extends Vue {
 				this.readAnswer(msg.answer)
 				break;
 			case 'candidate':
-				this.consumeCandidate(msg.candidate)
+				this.setCandidate(msg.candidate)
 				break;
 		}
 	}
 
-	readAnswer = (answer: any) => this.pc.setRemoteDescription(answer)
+	readAnswer(answer: any) { this.pc.setRemoteDescription(answer) }
 
-	consumeCandidate = (candidate: any) => this.pc.addIceCandidate(candidate)
+	setCandidate(candidate: any) { this.pc.addIceCandidate(candidate) }
 
 	consumeOffer(offer: any) { 
 		this.pc
@@ -64,14 +66,6 @@ export default class Home extends Vue {
    				})
   			})
 	}
-
-	setOnIce = (pc: any) => {
-		pc.onicecandidate = (ice: any) => {
-			console.log(ice)
-			if(ice.candidate)
-				this.socket.send(this.stringify({ type: "candidate", candidate: ice.candidate}))
-		}
-	} 
 
 	mounted() {
 		this.socket = new WebSocket('ws://192.168.0.103:8080')
@@ -86,7 +80,11 @@ export default class Home extends Vue {
 			this.pc.addStream(stream)
 
 			this.pc.ontrack = (e: any) => this.remoteVideo.srcObject = e.streams[0]
-			this.setOnIce(this.pc)
+			this.pc.onicecandidate = (ice: any) => {
+				console.log(ice)
+				if(ice.candidate)
+					this.socket.send(this.stringify({ type: "candidate", candidate: ice.candidate}))
+			}
 		}).catch(function(err) {
 			console.log(err.name + ": " + err.message); 
 		})
