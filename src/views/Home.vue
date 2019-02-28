@@ -96,7 +96,9 @@ export default class Home extends Vue {
 	start() {
 		this.pc
 			.createOffer(this.mediaConstraints)
-			.then((description: any) => this.socket.send(this.stringify({ type: "offer", offer: description })))
+			.then((description: any) => {
+				this.pc.setLocalDescription(description).then(() => this.socket.send(this.stringify({ type: "offer", offer: description })))
+			})
 	}
 
 }
