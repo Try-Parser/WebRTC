@@ -38,7 +38,31 @@ export default class Home extends Vue {
 	onmessage(message: any) {
 		var msg = JSON.parse(message.data);
 
-		console.log(msg)
+		switch(msg.type) {
+			case 'offer':
+				this.consumeOffer(msg.offer)
+				break;
+			case 'answer':
+				this.readAnswer(msg.answer)
+				break;
+			case 'candidate':
+				this.consumeCandidate(msg.candidate)
+				break;
+		}
+	}
+
+	readAnswer = (answer: any) => this.pc.setRemoteDescription(answer)
+
+	consumeCandidate = (candidate: any) => this.pc.addIceCandidate(candidate)
+
+	consumeOffer(offer: any) { 
+		this.pc
+			.setRemoteDescription(new RTCSessionDescription(offer))
+			.then(() => {
+   				this.pc.createAnswer().then((answer: any) => {
+   					this.socket.send(this.stringify({ type: "answer", answer: answer}))
+   				})
+  			})
 	}
 
 	setOnIce = (pc: any) => {
@@ -73,7 +97,7 @@ export default class Home extends Vue {
 	start() {
 		this.pc
 			.createOffer(this.mediaConstraints)
-			.then((description: any) => this.socket.send(this.stringify({ type: "offer", data: description })))
+			.then((description: any) => this.socket.send(this.stringify({ type: "offer", offer: description })))
 	}
 
 }
