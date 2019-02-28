@@ -53,16 +53,18 @@ export default class Home extends Vue {
 		}
 	}
 
-	readAnswer(answer: any) { this.pc.setRemoteDescription(answer) }
+	readAnswer(answer: any) { this.pc.setRemoteDescription(answer).catch((err: any) => console.log(err)) }
 
-	setCandidate(candidate: any) { this.pc.addIceCandidate(candidate) }
+	setCandidate(candidate: any) { this.pc.addIceCandidate(candidate).catch((err: any) => console.log(err)) }
 
 	consumeOffer(offer: any) { 
 		this.pc
 			.setRemoteDescription(new RTCSessionDescription(offer))
 			.then(() => {
    				this.pc.createAnswer().then((answer: any) => {
-   					this.socket.send(this.stringify({ type: "answer", answer: answer}))
+   					this.pc.setLocalDescription(answer).then(() => {
+   						this.socket.send(this.stringify({ type: "answer", answer: answer}))
+   					})
    				})
   			})
 	}
