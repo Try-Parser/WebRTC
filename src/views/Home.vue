@@ -1,7 +1,7 @@
 <template>
   <div class="home">
-	<video src="" ref="localVideo"></video>
-	<video src="" ref="remoteVideo"></video>
+	<video src="" ref="localVideo" autoplay></video>
+	<video src="" ref="remoteVideo" autoplay></video>
 	<br>
 	<button @click="start">Start</button>
   </div>
@@ -37,17 +37,23 @@ export default class Home extends Vue {
 
 	onmessage(message: any) {
 		var msg = JSON.parse(message.data);
+
+		console.log(msg)
 	}
 
+	setOnIce = (pc: any) => {
+		pc.onicecandidate = (ice: any) => {
+			console.log(ice)
+			if(ice.candidate)
+				this.socket.send(this.stringify({ type: "candidate", candidate: ice.candidate}))
+		}
+	} 
+
 	mounted() {
-		this.socket = new WebSocket('ws://192.168.0.103:9090')
+		this.socket = new WebSocket('ws://192.168.0.103:8080')
 
 		this.localVideo = this.$refs.localVideo
 		this.remoteVideo = this.$refs.remoteVideo
-
-		this.localVideo.addEventListener('loadedmetadata', () => {
-			this.localVideo.play()
-		});
 
 		this.socket.onmessage = this.onmessage
 
@@ -56,13 +62,18 @@ export default class Home extends Vue {
 			this.pc.addStream(stream)
 
 			this.pc.ontrack = (e: any) => this.remoteVideo.srcObject = e.streams[0]
+			this.setOnIce(this.pc)
 		}).catch(function(err) {
 			console.log(err.name + ": " + err.message); 
 		})
 	}
 
+	stringify = (data: any) => JSON.stringify(data)
+
 	start() {
-		// this.pc.createOffer(this.mediaConstraints).then(this.createOffer);
+		this.pc
+			.createOffer(this.mediaConstraints)
+			.then((description: any) => this.socket.send(this.stringify({ type: "offer", data: description })))
 	}
 
 }
