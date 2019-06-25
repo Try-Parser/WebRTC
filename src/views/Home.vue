@@ -70,7 +70,7 @@ export default class Home extends Vue {
 	}
 
 	mounted() {
-		this.socket = new WebSocket('ws://192.168.0.103:8080')
+		this.socket = new WebSocket('ws://192.168.0.104:8080')
 
 		this.localVideo = this.$refs.localVideo
 		this.remoteVideo = this.$refs.remoteVideo
